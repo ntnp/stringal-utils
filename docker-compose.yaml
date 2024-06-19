@@ -1,0 +1,108 @@
+services:
+  # API
+  stringal-api:
+    image: ntnp/laravel-dev:8.3
+    container_name: stringal-api
+    hostname: stringal-api
+    depends_on:
+      - stringal-mysql
+      - stringal-redis
+    networks:
+      - app
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./stringal-api:/var/www/html
+
+  # API Horizon/Scheduler
+  stringal-api-horizon:
+    image: ntnp/laravel-horizon-dev:8.3
+    container_name: stringal-api-horizon
+    hostname: stringal-api-horizon
+    depends_on:
+      - stringal-mysql
+      - stringal-redis
+    networks:
+      - app
+    volumes:
+      - ./stringal-api:/var/www/html
+
+  # API Reverb
+  #stringal-api-reverb:
+  #  image: ntnp/laravel-reverb-dev:8.3
+  #  container_name: stringal-api-reverb
+  #  hostname: stringal-api-reverb
+  #  depends_on:
+  #    - stringal-mysql
+  #    - stringal-redis
+  #  networks:
+  #    - app
+  #  volumes:
+  #    - ./stringal-api:/var/www/html
+
+  # API web
+  stringal-api-web:
+    image: nginx:latest
+    container_name: stringal-api-web
+    hostname: stringal-api-web
+    depends_on:
+      - stringal-api
+    links:
+      - stringal-api
+    networks:
+      - app
+    ports:
+      - "8060:80"
+      - "8061:443"
+    volumes:
+      - ./stringal-api:/var/www/html
+      - ./.docker/nginx/ssl:/etc/nginx/ssl
+      - ./.docker/nginx/api-web.conf:/etc/nginx/conf.d/default.conf
+
+  # API Reverb web
+  #stringal-api-reverb-web:
+  #  image: nginx:latest
+  #  container_name: stringal-api-reverb-web
+  #  hostname: stringal-api-reverb-web
+  #  depends_on:
+  #    - stringal-api-reverb
+  #  links:
+  #    - stringal-api-reverb
+  #  networks:
+  #    - app
+  #  ports:
+  #    - "9050:80"
+  #    - "9051:443"
+  #  volumes:
+  #    - ./stringal-api:/var/www/html
+  #    - ./.docker/nginx/ssl:/etc/nginx/ssl
+  #    - ./.docker/nginx/api-reverb-web.conf:/etc/nginx/conf.d/default.conf
+
+  # MySQL
+  stringal-mysql:
+    image: mariadb:latest
+    container_name: stringal-mysql
+    hostname: stringal-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: 20240101
+    networks:
+      - app
+    ports:
+      - "3360:3306"
+    volumes:
+      - ./.docker_data/mysql:/var/lib/mysql
+
+  # Redis
+  stringal-redis:
+    image: redis:alpine
+    container_name: stringal-redis
+    hostname: stringal-redis
+    command: "redis-server --requirepass 20240101"
+    networks:
+      - app
+    ports:
+      - "6360:6379"
+
+networks:
+  app:
+    driver: bridge
