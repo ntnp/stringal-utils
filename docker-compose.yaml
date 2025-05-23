@@ -1,14 +1,14 @@
 services:
   # API
   stringal-api:
-    image: ntnp/laravel-dev:8.3
+    build: ./.docker/api
     container_name: stringal-api
     hostname: stringal-api
     depends_on:
       - stringal-mysql
       - stringal-redis
     networks:
-      - app
+      - stringal-net
     ports:
       - "5173:5173"
     volumes:
@@ -16,27 +16,27 @@ services:
 
   # API Horizon/Scheduler
   stringal-api-horizon:
-    image: ntnp/laravel-horizon-dev:8.3
+    build: ./.docker/api-horizon
     container_name: stringal-api-horizon
     hostname: stringal-api-horizon
     depends_on:
       - stringal-mysql
       - stringal-redis
     networks:
-      - app
+      - stringal-net
     volumes:
       - ./stringal-api:/var/www/html
 
   # API Reverb
   #stringal-api-reverb:
-  #  image: ntnp/laravel-reverb-dev:8.3
+  #  build: ./.docker/api-reverb
   #  container_name: stringal-api-reverb
   #  hostname: stringal-api-reverb
   #  depends_on:
   #    - stringal-mysql
   #    - stringal-redis
   #  networks:
-  #    - app
+  #    - stringal-net
   #  volumes:
   #    - ./stringal-api:/var/www/html
 
@@ -50,7 +50,7 @@ services:
     links:
       - stringal-api
     networks:
-      - app
+      - stringal-net
     ports:
       - "8060:80"
       - "8061:443"
@@ -69,10 +69,10 @@ services:
   #  links:
   #    - stringal-api-reverb
   #  networks:
-  #    - app
+  #    - stringal-net
   #  ports:
-  #    - "9050:80"
-  #    - "9051:443"
+  #    - "9060:80"
+  #    - "9061:443"
   #  volumes:
   #    - ./stringal-api:/var/www/html
   #    - ./.docker/nginx/ssl:/etc/nginx/ssl
@@ -86,7 +86,7 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: 20240101
     networks:
-      - app
+      - stringal-net
     ports:
       - "3360:3306"
     volumes:
@@ -99,10 +99,10 @@ services:
     hostname: stringal-redis
     command: "redis-server --requirepass 20240101"
     networks:
-      - app
+      - stringal-net
     ports:
       - "6360:6379"
 
 networks:
-  app:
+  stringal-net:
     driver: bridge
